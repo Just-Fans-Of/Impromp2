@@ -28,7 +28,9 @@ class Create{
         // Check if name is defined, use that
         if (split.length > 1) givenName = split.slice(1, split.length).join(' ');
 
-        var channelName = this.config.tempChannelNamePrefix + username + ': ' + givenName;
+        var channelName = this.config.tempChannelNamePrefix +
+                          (this.config.tempChannelHaveName ? username + ': ':' ') +
+                          givenName;
 
         console.log('Creating channel', channelName);
         this.bot.createTemporaryChannel(channelName, gid);
