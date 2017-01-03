@@ -12,6 +12,10 @@ module.exports = {
     tempChannelHaveName: false,
     tempChannelNamePrefix: 'Temporary:',
 
+    commandPermissions: {
+        "create": ["Goon Squad", "Goons"],
+    },
+
     autoReconnect: true,
     autoReconnectInterval: 5000,
 

@@ -63,9 +63,16 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
     var lower = msg.toLowerCase();
     var server = bot.servers[channel.guild_id];
     cmds.forEach(cmd => {
-        if (lower.startsWith(config.commandPrefix + cmd.command) &&
-            cmd.checkUserPermissions(userID, server)) {
-            cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
+        if (lower.startsWith(config.commandPrefix + cmd.command)) {
+            if (cmd.checkUserPermissions(userID, server)){
+                cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
+            }
+            else {
+                bot.sendMessage({
+                    to: channelID,
+                    message: user + ": You do not have permission to execute that command",
+                });
+            }
         }
     });
 });
@@ -83,7 +90,7 @@ if (config.autoCreateByGame) {
 
         var serverListOfUsersByGames = listOfUsersByGames[evt.d.guild_id];
 
-        if (inRoles(server, evt.d.roles, config.autoCreateByGameRoles)) {
+        if (bot.inRoles(server, evt.d.roles, config.autoCreateByGameRoles)) {
             var game = evt.d.game;
             // Add user to game list if playing game
             if (game != null) {
@@ -184,7 +191,7 @@ function checkTemporaryChannels() {
 
 // Checks if any of the roles in roleIDs is in the list of roles
 // Second param is comma-delimted string
-function inRoles(server, roleIDs, roles) {
+bot.inRoles = function(server, roleIDs, roles) {
     for(var i = 0; i < roleIDs.length; i++ ){
         var roleString = server.roles[roleIDs[i]].name;
         var filter = roles.filter(r => roleString == r);

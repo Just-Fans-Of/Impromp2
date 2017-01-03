@@ -36,7 +36,7 @@ class Create{
     }
 
     checkUserPermissions(uid, server) {
-        return true;
+        return this.bot.inRoles(server, server.members[uid].roles, this.config.commandPermissions['create']);
     }
 }
 
