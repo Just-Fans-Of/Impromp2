@@ -33,6 +33,25 @@ bot.on('ready', (evt) => {
     console.log('Logged in as %s - %s', bot.username, bot.id);
     checkTemporaryChannels();
     bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.tempChannelCheckInterval);
+
+    // Check users in game to add to list
+    if (config.autoCreateByGame) {
+        Object.keys(bot.servers).forEach(gid => {
+            listOfUsersByGames[gid] = {};
+            var server = bot.servers[gid];
+            Object.keys(server.members).forEach(uid => {
+                var user = server.members[uid];
+                if (user.game !== null) {
+                    if (listOfUsersByGames[gid][user.game.name] == undefined)
+                        listOfUsersByGames[gid][user.game.name] = [];
+
+                    listOfUsersByGames[gid][user.game.name].push(uid);
+                }
+            });
+        });
+
+        checkCommonGames();
+    }
 });
 
 bot.on('disconnect', () => {
