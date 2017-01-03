@@ -30,6 +30,7 @@ class Create{
         var channelName = this.config.tempChannelNamePrefix + username + ': ' + givenName;
 
         console.log('Creating channel', channelName);
+        this.bot.createTemporaryChannel(channelName, gid);
     }
 
     checkUserPermissions(uid, server) {

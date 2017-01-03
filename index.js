@@ -12,7 +12,19 @@ var bot = new Discord.Client({
 
 bot.active = () => {
     return bot.connected && bot.presenceStatus == "online";
-}
+};
+
+bot.createTemporaryChannel = (name, guildID) => {
+    bot.createChannel({
+        serverID: guildID,
+        name: name,
+        type: 'voice',
+    }, (err,res) => {
+        if (err) console.error('Error creating temporary channel:', err);
+    });
+
+    // TODO info and permissions
+};
 
 var listOfUsersByGames = {};
 var listOfTempChannels = {}; // channelID: age
@@ -108,16 +120,17 @@ function checkTemporaryChannels() {
             var channel = bot.channels[chanID];
 
             // Check if is temp channel
-            if (channel.name.startsWith('$')){
+            if (channel.type == 'voice' && channel.name.startsWith(config.tempChannelNamePrefix)){
                 // Add to age
-                if (listOfTempChannels[chanID]) {
+                if (listOfTempChannels[chanID] != undefined) {
                     // check number of users
-                    if (channel.members.length == 0) {
+                    if (Object.keys(channel.members).length == 0) {
                         listOfTempChannels[chanID] += config.tempChannelCheckInterval;
-                        console.log("Adding to age " + listOfTempChannels[chanID]);
                         if (listOfTempChannels[chanID] >= config.tempChannelTimeout) {
-                            var server = bot.servers[channel.guild_id];
-                                           
+                            console.log('Channel expiring:', channel.name);
+                            bot.deleteChannel(chanID, (err, res) => {
+                                if (err) console.error('Error deleting temporary channel:', err);
+                            });
                         }
                     }
                     else {

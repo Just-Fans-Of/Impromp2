@@ -13,7 +13,7 @@ module.exports = {
     autoReconnect: true,
     autoReconnectInterval: 5000,
 
-    maxChannelsPerPerson: 4,
+    maxChannelsPerPerson: 4, // @TODO
 };
 
 
