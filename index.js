@@ -31,6 +31,7 @@ var listOfTempChannels = {}; // channelID: age
 
 bot.on('ready', (evt) => {
     console.log('Logged in as %s - %s', bot.username, bot.id);
+    console.log("Go to https://discordapp.com/api/oauth2/authorize?client_id=" + bot.id + "&scope=bot&permissions=0 to add bot to a server");
     checkTemporaryChannels();
     bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.tempChannelCheckInterval);
 
