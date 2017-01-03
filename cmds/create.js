@@ -6,8 +6,9 @@
  */
 
 class Create{
-    constructor (bot) {
+    constructor (bot, config) {
         this.bot = bot;
+        this.config = config;
     }
 
     get command () { return 'create' }
@@ -21,6 +22,14 @@ class Create{
         }, (err, res) => {
             console.log('CB', err, res);
         });
+
+        var split = message.split(' ');
+        var givenName = 'Temporary Channel';
+        if (split.length > 1) split.slice(0, split.length).join(' ');
+
+        var channelName = this.config.tempChannelNamePrefix + username + ': ' + givenName;
+
+        console.log('Creating channel', channelName);
     }
 
     checkUserPermissions(uid, server) {

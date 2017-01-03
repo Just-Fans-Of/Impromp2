@@ -15,6 +15,7 @@ bot.active = () => {
 }
 
 var listOfUsersByGames = {};
+var listOfTempChannels = {}; // channelID: age
 
 bot.on('ready', (evt) => {
     console.log('Logged in as %s - %s', bot.username, bot.id);
@@ -36,8 +37,7 @@ var cmds = [];
 require("fs").readdirSync(normalizedPath).forEach(function(file) {
     if (file.endsWith('.js')){
         var Clazz = require('./cmds/' + file);
-        cmds.push( new Clazz(bot) );
-
+        cmds.push( new Clazz(bot, config) );
     }
 });
 
@@ -106,8 +106,27 @@ function checkTemporaryChannels() {
         
         Object.keys(bot.channels).map(chanID => {
             var channel = bot.channels[chanID];
-            var server = bot.servers[channel.guild_id];
-            //console.log(server.name, channel.name, channel.type);
+
+            // Check if is temp channel
+            if (channel.name.startsWith('$')){
+                // Add to age
+                if (listOfTempChannels[chanID]) {
+                    // check number of users
+                    if (channel.members.length == 0) {
+                        listOfTempChannels[chanID] += config.tempChannelCheckInterval;
+                        console.log("Adding to age " + listOfTempChannels[chanID]);
+                        if (listOfTempChannels[chanID] >= config.tempChannelTimeout) {
+                            var server = bot.servers[channel.guild_id];
+                                           
+                        }
+                    }
+                    else {
+                        listOfTempChannels[chanID] = 0;
+                    }
+                }
+                else
+                    listOfTempChannels[chanID] = 0;
+            }
         });
     }
 };

@@ -8,6 +8,7 @@ module.exports = {
 
     tempChannelCheckInterval: 1000,
     tempChannelTimeout: 30000, // How long a channel must be empty before deleted
+    tempChannelNamePrefix: '$',
 
     autoReconnect: true,
     autoReconnectInterval: 5000,
