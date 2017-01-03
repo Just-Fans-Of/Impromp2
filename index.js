@@ -3,6 +3,8 @@ var config = require('./config.js');
 
 var Discord = require('discord.io');
 
+
+/**** Bot Initialization ****/
 var bot = new Discord.Client({
     autorun: true,
     token: keys.discord,
@@ -28,15 +30,38 @@ bot.on('disconnect', () => {
     }
 });
 
+/**** Command Initialization ****/
+var normalizedPath = require("path").join(__dirname, "cmds");
+var cmds = [];
+require("fs").readdirSync(normalizedPath).forEach(function(file) {
+    if (file.endsWith('.js')){
+        var Clazz = require('./cmds/' + file);
+        cmds.push( new Clazz(bot) );
+
+    }
+});
+
+
+/**** Command handling ****/
 bot.on('message', (user, userID, channelID, msg, evt) => {
 
-    console.log("Got message", msg);
+    var channel = bot.channels[evt.d.channel_id]
+    if (channel == undefined) return; // Is a direct message, don't do anything
+
+    var lower = msg.toLowerCase();
+    var server = bot.servers[channel.guild_id];
+    cmds.forEach(cmd => {
+        if (lower.startsWith(config.commandPrefix + cmd.command) &&
+            cmd.checkUserPermissions(userID, server)) {
+            cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
+        }
+    });
 });
 
 
-bot.on('any', (evt) => {
-});
 
+
+/**** Auto-channel creation ****/
 bot.on('presence', (user, uid, status, game, evt) => {
     // First check if user is allowed to cause temp game channels
     var server = bot.servers[evt.d.guild_id];
@@ -73,6 +98,8 @@ bot.on('presence', (user, uid, status, game, evt) => {
 function checkCommonGames() {
 
 }
+
+/**** Temporary-channel destruction ****/
 
 function checkTemporaryChannels() {
     if (bot && bot.active()) {
