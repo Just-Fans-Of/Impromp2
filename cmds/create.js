@@ -26,7 +26,7 @@ class Create{
         }
 
         // Check if name is defined, use that
-        if (split.length > 1) split.slice(0, split.length).join(' ');
+        if (split.length > 1) givenName = split.slice(1, split.length).join(' ');
 
         var channelName = this.config.tempChannelNamePrefix + username + ': ' + givenName;
 
