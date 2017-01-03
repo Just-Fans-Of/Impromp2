@@ -21,7 +21,10 @@ bot.on('ready', (evt) => {
 
 bot.on('disconnect', () => {
     console.log('Disconnected');
-
+    
+    if (config.autoReconnect) {
+        setTimeout(()=>bot.connect(), config.autoReconnectInterval)
+    }
 });
 
 bot.on('message', (user, userID, channelID, msg, evt) => {
