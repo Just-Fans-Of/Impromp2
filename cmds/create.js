@@ -17,7 +17,7 @@ class Create{
     onCommandEntered(message, username, uid, gid, cid) {
 
         var split = message.split(' ');
-        var givenName = 'Temporary Channel';
+        var givenName = username + "'s Channel";
 
         // Check if user is in game, then name it that
         var user = this.bot.users[uid];
@@ -28,8 +28,7 @@ class Create{
         // Check if name is defined, use that
         if (split.length > 1) givenName = split.slice(1, split.length).join(' ');
 
-        var channelName = this.config.tempChannelNamePrefix +
-                          (this.config.tempChannelHaveName ? username + ': ':' ') +
+        var channelName = (this.config.tempChannelHaveName ? username + ': ':' ') +
                           givenName;
 
         console.log('Creating channel', channelName);

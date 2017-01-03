@@ -17,7 +17,7 @@ bot.active = () => {
 bot.createTemporaryChannel = (name, guildID) => {
     bot.createChannel({
         serverID: guildID,
-        name: name,
+        name: config.tempChannelNamePrefix + name,
         type: 'voice',
     }, (err,res) => {
         if (err) console.error('Error creating temporary channel:', err);
@@ -26,7 +26,7 @@ bot.createTemporaryChannel = (name, guildID) => {
     // TODO info and permissions
 };
 
-var listOfUsersByGames = {};
+var listOfUsersByGames = {}; // { serverID: { gameName: [userID, userID] } }
 var listOfTempChannels = {}; // channelID: age
 
 bot.on('ready', (evt) => {
@@ -74,41 +74,68 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
 
 
 /**** Auto-channel creation ****/
-bot.on('presence', (user, uid, status, game, evt) => {
-    // First check if user is allowed to cause temp game channels
-    var server = bot.servers[evt.d.guild_id];
-    if (inRoles(server, evt.d.roles, config.autoCreateByGameRoles)) {
-        console.log("In role");
-        var game = evt.d.game;
-        // Add user to game list if playing game
-        if (game != null) {
-           if(!listOfUsersByGames[game.name]) listOfUsersByGames[game.name] = [];
-           listOfUsersByGames[game.name].push(uid);
-           console.log("Adding user. ", listOfUsersByGames);
-           checkCommonGames();
+if (config.autoCreateByGame) {
+    bot.on('presence', (user, uid, status, game, evt) => {
+        // First check if user is allowed to cause temp game channels
+        var server = bot.servers[evt.d.guild_id];
+        if (listOfUsersByGames[evt.d.guild_id] == undefined)
+            listOfUsersByGames[evt.d.guild_id] = {};
+
+        var serverListOfUsersByGames = listOfUsersByGames[evt.d.guild_id];
+
+        if (inRoles(server, evt.d.roles, config.autoCreateByGameRoles)) {
+            var game = evt.d.game;
+            // Add user to game list if playing game
+            if (game != null) {
+            
+                // Check if game is exempt
+                if (config.exemptAutoCreateGames.indexOf(game.name) !== -1) return;
+
+                if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
+                serverListOfUsersByGames[game.name].push(uid);
+                checkCommonGames();
+            }
+
+            // User not playing game, remove
+            else if (game == null) {
+                Object.keys(serverListOfUsersByGames).forEach(gameName => {
+                    var userList = serverListOfUsersByGames[gameName];
+                    if (userList.indexOf(uid) >= 0) {
+                        userList.splice(userList.indexOf(uid), 1);
+                    }
+                });
+            }
+
         }
+    });
+}
 
-        // User not playing game, remove
-        else if (game == null) {
-            console.log("no game");
-            Object.keys(listOfUsersByGames).forEach(gameName => {
-                var userList = listOfUsersByGames[gameName];
-                console.log('userlistInd', userList.indexOf(uid));
-                if (userList.indexOf(uid) >= 0) {
-                    userList.splice(userList.indexOf(uid), 1);
-                   console.log("Removing user. ", listOfUsersByGames);
-                }
-            });
-        }
-
-    }
-
-
-});
-
+function getNumberOfUsersPlayingGame(gameName, guildID){
+    if (!listOfUsersByGames[guildID]) return 0;
+    if (!listOfUsersByGames[guildID][gameName]) return 0;
+    return listOfUsersByGames[guildID][gameName].length;
+}
 
 function checkCommonGames() {
+    Object.keys(listOfUsersByGames).forEach(serverID => {
+        var serverListOfUsersByGames = listOfUsersByGames[serverID];
+        Object.keys(serverListOfUsersByGames).forEach(gameName => {
+            var entry = serverListOfUsersByGames[gameName];
+            // There is at least autoCreateByGameCommon people playing this game
+            if (entry.length >= config.autoCreateByGameCommon) {
 
+                // Check if there is already a channel
+                var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
+                    var channel = bot.channels[cid];
+                    return channel.name.indexOf(gameName) !== -1;
+                });
+                if (filter.length == 0)  {
+                    console.log("Creating channel for players playing", gameName);
+                    bot.createTemporaryChannel(' ' + gameName, serverID);
+                }
+            }
+        });
+    });
 }
 
 /**** Temporary-channel destruction ****/
@@ -125,6 +152,16 @@ function checkTemporaryChannels() {
                 if (listOfTempChannels[chanID] != undefined) {
                     // check number of users
                     if (Object.keys(channel.members).length == 0) {
+
+                        // Check to see if game was created for common-games
+                        if (config.autoCreateByGame) {
+                            var gameName = channel.name.substring((config.tempChannelNamePrefix + ' ').length);
+                            if (getNumberOfUsersPlayingGame(gameName, channel.guild_id) >= config.autoCreateByGameCommon) {
+                                listOfTempChannels[chanID] = 0;
+                                return;
+                            }
+                        }
+
                         listOfTempChannels[chanID] += config.tempChannelCheckInterval;
                         if (listOfTempChannels[chanID] >= config.tempChannelTimeout) {
                             console.log('Channel expiring:', channel.name);
@@ -148,11 +185,9 @@ function checkTemporaryChannels() {
 // Checks if any of the roles in roleIDs is in the list of roles
 // Second param is comma-delimted string
 function inRoles(server, roleIDs, roles) {
-    roles = roles.split(',').map(s => s.trim());
     for(var i = 0; i < roleIDs.length; i++ ){
         var roleString = server.roles[roleIDs[i]].name;
         var filter = roles.filter(r => roleString == r);
-        console.log( "Role string", roleString, roles, filter.length);
         if (filter.length > 0) return true;
     }
     return false;
