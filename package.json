@@ -1,0 +1,15 @@
+{
+  "name": "badonkabot",
+  "version": "1.0.0",
+  "description": "A discord bot for making temporary channels",
+  "main": "index.js",
+  "dependencies": {
+    "discord.io": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "NumbuhFour",
+  "license": "ISC"
+}
