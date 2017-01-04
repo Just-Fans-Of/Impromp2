@@ -42,7 +42,7 @@ bot.on('ready', (evt) => {
             var server = bot.servers[gid];
             Object.keys(server.members).forEach(uid => {
                 var user = server.members[uid];
-                if (user.game !== null) {
+                if (user.game) {
                     if (listOfUsersByGames[gid][user.game.name] == undefined)
                         listOfUsersByGames[gid][user.game.name] = [];
 
