@@ -102,6 +102,21 @@ bot.on('disconnect', () => {
     }
 });
 
+bot.on('any', (evt) => {
+    // We are joining a server
+    // Also fires on already-joined servers when starting up
+    if (evt.t == 'GUILD_CREATE') {
+        // Check if config entry exists for this server
+        // If it doesn't, create one based off default
+        
+    }
+
+    // We are leaving a server
+    else if(evt.t == 'GUILD_DELETE') {
+        // Maybe delete config, probably not
+    }
+});
+
 /**** Command Initialization ****/
 var normalizedPath = require("path").join(__dirname, "cmds");
 var cmds = [];
