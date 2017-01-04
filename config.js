@@ -10,7 +10,8 @@ module.exports = {
     tempChannelCheckInterval: 1000,
     tempChannelTimeout: 30000, // How long a channel must be empty before deleted
     tempChannelHaveName: false,
-    tempChannelNamePrefix: 'Temporary:',
+    tempChannelNameFlag: ' | Temporary', // What to add to a channel name to flag it as temporary
+    tempChannelFlagLocation: 'end', // Either start or end
 
     commandPermissions: {
         "create": ["Goon Squad", "Goons"],

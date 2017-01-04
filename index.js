@@ -18,10 +18,39 @@ bot.active = () => {
     return bot.connected && bot.presenceStatus == "online";
 };
 
+// Make a temporary channel name with the flag additions
+bot.createTemporaryChannelName = (name) => {
+    if (config.tempChannelFlagLocation == 'start') {
+        return config.tempChannelNameFlag + name;
+    }
+    else {
+        return name + config.tempChannelNameFlag;
+    }
+}
+// Remove the temporary flag addition from a name to get just the rest
+bot.scrubTemporaryFlag = (name) => {
+    if (config.tempChannelFlagLocation == 'start') {
+        return name.substring(config.tempChannelNameFlag.length);
+    }
+    else {
+        return name.substring(0, name.length - config.tempChannelNameFlag.length);
+    }
+}
+
+// Check if name is a temporary channel
+bot.isChannelTemporary = (name) => {
+    if (config.tempChannelFlagLocation == 'start') {
+        return name.startsWith(config.tempChannelNameFlag);
+    }
+    else {
+        return name.endsWith(config.tempChannelNameFlag);
+    }
+}
+
 bot.createTemporaryChannel = (name, guildID) => {
     bot.createChannel({
         serverID: guildID,
-        name: config.tempChannelNamePrefix + name,
+        name: bot.createTemporaryChannelName(name),
         type: 'voice',
     }, (err,res) => {
         if (err) console.error('Error creating temporary channel:', err);
@@ -178,7 +207,7 @@ function checkTemporaryChannels() {
             var channel = bot.channels[chanID];
 
             // Check if is temp channel
-            if (channel.type == 'voice' && channel.name.startsWith(config.tempChannelNamePrefix)){
+            if (channel.type == 'voice' && bot.isChannelTemporary(channel.name)) {
                 // Add to age
                 if (listOfTempChannels[chanID] != undefined) {
                     // check number of users
@@ -186,7 +215,7 @@ function checkTemporaryChannels() {
 
                         // Check to see if game was created for common-games
                         if (config.autoCreateByGame) {
-                            var gameName = channel.name.substring((config.tempChannelNamePrefix + ' ').length);
+                            var gameName = bot.scrubTemporaryFlag(channel.name);
                             if (getNumberOfUsersPlayingGame(gameName, channel.guild_id) >= config.autoCreateByGameCommon) {
                                 listOfTempChannels[chanID] = 0;
                                 return;
