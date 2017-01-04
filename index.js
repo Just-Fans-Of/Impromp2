@@ -10,7 +10,21 @@ if(process.argv.filter(c => c == '-s' || c == '--silent').length > 0) {
     console.log = () => {}; // @TODO proper logging
 }
 
-var bot = require('./bot.js');
+var mongodb = require('mongodb');
+
+var MongoClient = mongodb.MongoClient;
+var url = 'mongodb://' + keys.mongo.user + ':' + keys.mongo.pwd + '@' + keys.mongo.url + ':' + keys.mongo.port + '/' + keys.mongo.db;
+MongoClient.connect(url, (err, db) => {
+    if (err) {
+        console.error("Error connecting to DB:", err);
+        return;
+    }
+
+    console.log("Connected to database");
+    
+    var bot = require('./bot.js');
+});
+
 
 
 // Cleanup
