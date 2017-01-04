@@ -9,7 +9,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "node index.js",
-    "start": "node index.js"
+    "start": "node index.js --silent"
   },
   "author": "NumbuhFour",
   "license": "ISC"

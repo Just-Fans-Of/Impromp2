@@ -5,6 +5,10 @@ var Discord = require('discord.io');
 
 
 /**** Bot Initialization ****/
+if(process.argv.filter(c => c == '-s' || c == '--silent').length > 0) {
+    console.log = () => {};
+}
+
 var bot = new Discord.Client({
     autorun: true,
     token: keys.discord,
