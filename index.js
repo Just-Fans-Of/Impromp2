@@ -195,6 +195,7 @@ function checkTemporaryChannels() {
                             bot.deleteChannel(chanID, (err, res) => {
                                 if (err) console.error('Error deleting temporary channel:', err);
                             });
+                            delete listOfTempChannels[chanID];
                         }
                     }
                     else {
