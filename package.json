@@ -4,7 +4,8 @@
   "description": "A discord bot for making temporary channels",
   "main": "index.js",
   "dependencies": {
-    "discord.io": "^2.3.0"
+    "discord.io": "^2.3.0",
+    "mongodb": "^2.2.19"
   },
   "devDependencies": {},
   "scripts": {
