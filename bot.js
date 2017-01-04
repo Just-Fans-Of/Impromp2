@@ -1,15 +1,10 @@
-var keys = require('./keys.js');
-var config = require('./config.js');
-
 var Discord = require('discord.io');
 
+var main = require('./index.js');
+var config = main.config;
+var keys = main.keys;
 
 /**** Bot Initialization ****/
-process.title = "justfansofbot";
-if(process.argv.filter(c => c == '-s' || c == '--silent').length > 0) {
-    console.log = () => {};
-}
-
 var bot = new Discord.Client({
     autorun: false,
     token: keys.discord,
@@ -17,7 +12,7 @@ var bot = new Discord.Client({
 
 console.log('Connecting...');
 bot.connect();
-
+module.exports = bot;
 
 bot.active = () => {
     return bot.connected && bot.presenceStatus == "online";
@@ -276,17 +271,3 @@ bot.inRoles = function(server, roleIDs, roles) {
 }
 
 
-// Cleanup
-function exitHandler(options, err) {
-    console.log(options.evt, "Shutting down...");
-    if (err) console.log(err.stack);
-    if (bot) bot.disconnect();
-    if (options.exit) process.exit();
-}
-//do something when app is closing
-process.on('exit', exitHandler.bind(null,{cleanup:true, evt:'exit'}));
-//catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, {exit:true, evt:'SIGINT'}));
-process.on('SIGTERM', exitHandler.bind(null, {exit:true, evt:'SIGTERM'}));
-//catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null, {exit:true, evt:'exception'}));
