@@ -224,13 +224,15 @@ bot.inRoles = function(server, roleIDs, roles) {
 
 // Cleanup
 function exitHandler(options, err) {
+    console.log(options.evt, "Shutting down...");
     if (err) console.log(err.stack);
     if (bot) bot.disconnect();
     if (options.exit) process.exit();
 }
 //do something when app is closing
-process.on('exit', exitHandler.bind(null,{cleanup:true}));
+process.on('exit', exitHandler.bind(null,{cleanup:true, evt:'exit'}));
 //catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+process.on('SIGINT', exitHandler.bind(null, {exit:true, evt:'SIGINT'}));
+process.on('SIGTERM', exitHandler.bind(null, {exit:true, evt:'SIGTERM'}));
 //catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
+process.on('uncaughtException', exitHandler.bind(null, {exit:true, evt:'exception'}));
