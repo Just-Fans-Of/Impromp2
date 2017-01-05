@@ -87,7 +87,7 @@ MongoClient.connect(url, (err, db) => {
                 
                 configCollection.insert([obj], (err, res) => {
                     if (err)
-                        console.error('Error insertnig new server config:', err);
+                        console.error('Error inserting new server config:', err);
                 })
             },
 
