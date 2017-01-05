@@ -36,7 +36,9 @@ class Create{
     }
 
     checkUserPermissions(uid, server) {
-        return this.bot.inRoles(server, server.members[uid].roles, this.config.entries[server.id].commandPermissions['create']);
+        console.log("Checking user permissions", this.bot.isAdministrator(server.id, uid));
+        return this.bot.isAdministrator(server.id, uid) ||
+                this.bot.inRoles(server, server.members[uid].roles, this.config.entries[server.id].commandPermissions['create']);
     }
 }
 

@@ -67,7 +67,6 @@ MongoClient.connect(url, (err, db) => {
                     res.forEach( entry => {
                         exports.config.entries[entry.guild_id] = new Config(entry);
                     });
-                    console.log(exports.config);
                     callback();
                 });
             },

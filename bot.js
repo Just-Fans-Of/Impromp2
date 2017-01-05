@@ -70,7 +70,6 @@ bot.on('ready', (evt) => {
 
     // Check users in game to add to list
     Object.keys(bot.servers).forEach(gid => {
-        console.log("SERVER ROLES", bot.servers[gid].roles);
         if (!config.entries[gid].autoCreateByGame) return;
         listOfUsersByGames[gid] = {};
         var server = bot.servers[gid];
@@ -276,6 +275,23 @@ bot.inRoles = function(server, roleIDs, roles) {
         if (filter.length > 0) return true;
     }
     return false;
+};
+
+function hasPermission(bit, perm) {
+    return ((perm >> bit) & 1) == 1;
 }
 
+bot.isAdministrator = function(guild_id, user_id) {
+    var server = bot.servers[guild_id];
+    var member = server.members[user_id];
+    if (member) {
+        for (var i in Object.keys(member.roles)) {
+            var role = server.roles[member.roles[i]];
+            if ( hasPermission(Discord.Permissions.GENERAL_ADMINISTRATOR, role._permissions) )
+                return true;
+        }
+    }
+
+    return false;
+};
 
