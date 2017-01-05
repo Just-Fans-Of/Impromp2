@@ -105,7 +105,6 @@ bot.on('any', (evt) => {
         // If it doesn't, create one based off default
 
         if (!config.entries[evt.d.id]){
-            console.log("Creating new", evt);
             config.createNew(evt.d.id, evt.d.name);
         }
     }

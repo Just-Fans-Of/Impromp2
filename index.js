@@ -78,7 +78,6 @@ MongoClient.connect(url, (err, db) => {
 
                 var obj = copy.getEntryFormat(guildId, false);
                 obj.name = name; // This will never update and probalby never needs to
-                console.log("THE COPY", obj);
                 
                 configCollection.insert([obj], (err, res) => {
                     if (err)
