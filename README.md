@@ -2,11 +2,7 @@
 
 # Impromp2 : A Discord bot for making Temporary Channels
 
-[![start with why](https://img.shields.io/badge/See-More%3F-brightgreen.svg?style=flat)](www.justfansof.com)
-
-[![start with why](https://img.shields.io/badge/license%3F-gray.svg?style=flat)](https://raw.githubusercontent.com/lkzhao/Hero/master/LICENSE)
-
-## Contributing [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Just-Fans-Of/Impromp2/issues)
+[![start with why](https://img.shields.io/badge/see-More-brightgreen.svg?style=flat)](www.justfansof.com)[![start with why](https://img.shields.io/badge/license-MIT%3F-blue.svg?style=flat)](https://raw.githubusercontent.com/lkzhao/Hero/master/LICENSE) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Just-Fans-Of/Impromp2/issues)
 
 ## But why?
 
