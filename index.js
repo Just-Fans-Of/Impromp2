@@ -17,7 +17,6 @@ var filt;
 if((filt = process.argv.filter(c => c.startsWith("--logfile="))).length > 0) {
     var filename = filt[0].substring(filt[0].indexOf('=')+1);
     winston.add(winston.transports.File, {filename:filename});
-    winston.remove(winston.transports.Console);
 }
 
 var mongodb = require('mongodb');
