@@ -1,11 +1,14 @@
 ![Impromp2 Logo](/img/Imp.png)
-Format: ![Alt Text](url)
 
 # Impromp2 : A Discord bot for making Temporary Channels
 
-[![Join the chat at https://gitter.im/Payum/Payum](https://badges.gitter.im/Payum/Payum.svg)](https://gitter.im/Payum/Payum?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![start with why](https://img.shields.io/badge/See-More%3F-brightgreen.svg?style=flat)](www.justfansof.com)
 
-# But why?
+[![start with why](https://img.shields.io/badge/license%3F-gray.svg?style=flat)](https://raw.githubusercontent.com/lkzhao/Hero/master/LICENSE)
+
+## Contributing [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Just-Fans-Of/Impromp2/issues)
+
+## But why?
 
 Discord channels can get very messy very quickly. With the inability to categorize properly and with the vast amount of games out right now it is very easy to find yourself with 25 different channels that get used rarely.
 
@@ -16,11 +19,11 @@ Impromp2 allows you to type a simple chat command and instantly create a tempora
 * Those who love Discord but hate that it doesn't have the same temporary channel functionality as Curse.
 * Streamers / Server Managers / Moderators / People with commitment Issues / Anybody who uses Discord
   
-# Installation
+## Installation
 
-## Click the banner below to install to your Discord server.
+### Click the banner below to install to your Discord server.
 
-## To start your own instance of Impromp2
+### To start your own instance of Impromp2
 
 Make a file called keys.js with your token.
 
@@ -29,3 +32,4 @@ module.exports = {
     discord: 'your-discord-token',
 };
 ```
+
