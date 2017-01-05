@@ -17,7 +17,7 @@ var url = 'mongodb://' + keys.mongo.user + ':' + keys.mongo.pwd + '@' + keys.mon
 var bot;
 var dbStore;
 
-var c = require('./configs.js');
+var c = require('./config.js');
 var Config = c.Config;
 var GlobalConfig = c.GlobalConfig;
 
