@@ -5,14 +5,19 @@ var Discord = require('discord.io');
 
 
 /**** Bot Initialization ****/
+process.title = "justfansofbot";
 if(process.argv.filter(c => c == '-s' || c == '--silent').length > 0) {
     console.log = () => {};
 }
 
 var bot = new Discord.Client({
-    autorun: true,
+    autorun: false,
     token: keys.discord,
 });
+
+console.log('Connecting...');
+bot.connect();
+
 
 bot.active = () => {
     return bot.connected && bot.presenceStatus == "online";
@@ -92,6 +97,7 @@ bot.on('disconnect', () => {
     console.log('Disconnected');
     
     if (config.autoReconnect) {
+        console.log('Reconnecting in', config.autoReconnectInterval/1000, 'seconds');
         setTimeout(()=>bot.connect(), config.autoReconnectInterval)
     }
 });
