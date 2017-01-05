@@ -20,6 +20,14 @@ class Config {
         this._maxChannelsPerPerson = obj['maxChannelsPerPerson']; // TODO
     }
 
+    getValue(key) {
+        return this['_' + key];
+    }
+    setValue(key, val) {
+        this['_' + key] = val;
+        this._dirty = true;
+    }
+
     get maxChannelsPerPerson() { return this._maxChannelsPerPerson; }
     set maxChannelsPerPerson(val) { this._dirty = true; this._maxChannelsPerPerson = val; }
 

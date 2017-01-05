@@ -23,6 +23,9 @@ var GlobalConfig = c.GlobalConfig;
 
 var configCollection;
 var globalCollection;
+
+var saveInterval;
+
 // Connect to database
 MongoClient.connect(url, (err, db) => {
     if (err) {
@@ -37,8 +40,11 @@ MongoClient.connect(url, (err, db) => {
     var configDone = false;
     var globalDone = false;
     var startBot = function() {
-        if (configDone && globalDone)
+        if (configDone && globalDone) {
             bot = require('./bot.js');
+            saveInterval = setInterval(exports.config.save, exports.config.global.configSaveInterval);
+        }
+
     };
 
     db.collection('Config', (err, res) => {
@@ -52,7 +58,7 @@ MongoClient.connect(url, (err, db) => {
 
             // Send all changed configurations to server
             save: (callback) => {
-                callback();
+                if (callback) callback();
             },
             
             // Pull all config options and store locally
