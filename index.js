@@ -73,11 +73,15 @@ MongoClient.connect(url, (err, db) => {
             },
 
             // Create a new server entry
-            createNew: (guildId) => {
+            createNew: (guildId, name) => {
                 var copy = new Config(exports.config.entries.Default.getEntryFormat(guildId, false), true);
                 exports.config.entries[guildId] = copy;
+
+                var obj = copy.getEntryFormat(guildId, false);
+                obj.name = name; // This will never update and probalby never needs to
+                console.log("THE COPY", obj);
                 
-                configCollection.insert([copy.getEntryFormat(guildId, false)], (err, res) => {
+                configCollection.insert([obj], (err, res) => {
                     if (err)
                         console.error('Error insertnig new server config:', err);
                 })

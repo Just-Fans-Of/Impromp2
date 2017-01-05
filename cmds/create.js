@@ -28,7 +28,7 @@ class Create{
         // Check if name is defined, use that
         if (split.length > 1) givenName = split.slice(1, split.length).join(' ');
 
-        var channelName = (this.config.tempChannelHaveName ? username + ': ':' ') +
+        var channelName = (this.config.entries[gid].tempChannelHaveName ? username + ': ':' ') +
                           givenName;
 
         console.log('Creating channel', channelName);
@@ -36,7 +36,7 @@ class Create{
     }
 
     checkUserPermissions(uid, server) {
-        return this.bot.inRoles(server, server.members[uid].roles, this.config.commandPermissions['create']);
+        return this.bot.inRoles(server, server.members[uid].roles, this.config.entries[server.id].commandPermissions['create']);
     }
 }
 

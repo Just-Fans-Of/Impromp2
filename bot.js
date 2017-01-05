@@ -19,38 +19,38 @@ bot.active = () => {
 };
 
 // Make a temporary channel name with the flag additions
-bot.createTemporaryChannelName = (name) => {
-    if (config.tempChannelFlagLocation == 'start') {
-        return config.tempChannelNameFlag + name;
+bot.createTemporaryChannelName = (name, guild_id) => {
+    if (config.entries[guild_id].tempChannelFlagLocation == 'start') {
+        return config.entries[guild_id].tempChannelNameFlag + name;
     }
     else {
-        return name + config.tempChannelNameFlag;
+        return name + config.entries[guild_id].tempChannelNameFlag;
     }
 }
 // Remove the temporary flag addition from a name to get just the rest
-bot.scrubTemporaryFlag = (name) => {
-    if (config.tempChannelFlagLocation == 'start') {
-        return name.substring(config.tempChannelNameFlag.length);
+bot.scrubTemporaryFlag = (name, guild_id) => {
+    if (config.entries[guild_id].tempChannelFlagLocation == 'start') {
+        return name.substring(config.entries[guild_id].tempChannelNameFlag.length);
     }
     else {
-        return name.substring(0, name.length - config.tempChannelNameFlag.length);
+        return name.substring(0, name.length - config.entries[guild_id].tempChannelNameFlag.length);
     }
 }
 
 // Check if name is a temporary channel
-bot.isChannelTemporary = (name) => {
-    if (config.tempChannelFlagLocation == 'start') {
-        return name.startsWith(config.tempChannelNameFlag);
+bot.isChannelTemporary = (name, guild_id) => {
+    if (config.entries[guild_id].tempChannelFlagLocation == 'start') {
+        return name.startsWith(config.entries[guild_id].tempChannelNameFlag);
     }
     else {
-        return name.endsWith(config.tempChannelNameFlag);
+        return name.endsWith(config.entries[guild_id].tempChannelNameFlag);
     }
 }
 
 bot.createTemporaryChannel = (name, guildID) => {
     bot.createChannel({
         serverID: guildID,
-        name: bot.createTemporaryChannelName(name),
+        name: bot.createTemporaryChannelName(name, guildID),
         type: 'voice',
     }, (err,res) => {
         if (err) console.error('Error creating temporary channel:', err);
@@ -66,34 +66,35 @@ bot.on('ready', (evt) => {
     console.log('Logged in as %s - %s', bot.username, bot.id);
     console.log("Go to https://discordapp.com/api/oauth2/authorize?client_id=" + bot.id + "&scope=bot&permissions=0 to add bot to a server");
     checkTemporaryChannels();
-    bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.tempChannelCheckInterval);
+    bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.global.tempChannelCheckInterval);
 
     // Check users in game to add to list
-    if (config.autoCreateByGame) {
-        Object.keys(bot.servers).forEach(gid => {
-            listOfUsersByGames[gid] = {};
-            var server = bot.servers[gid];
-            Object.keys(server.members).forEach(uid => {
-                var user = server.members[uid];
-                if (user.game) {
-                    if (listOfUsersByGames[gid][user.game.name] == undefined)
-                        listOfUsersByGames[gid][user.game.name] = [];
+    Object.keys(bot.servers).forEach(gid => {
+        console.log("SERVER ROLES", bot.servers[gid].roles);
+        if (!config.entries[gid].autoCreateByGame) return;
+        listOfUsersByGames[gid] = {};
+        var server = bot.servers[gid];
+        Object.keys(server.members).forEach(uid => {
+            var user = server.members[uid];
+            if (user.game) {
+                if (listOfUsersByGames[gid][user.game.name] == undefined)
+                    listOfUsersByGames[gid][user.game.name] = [];
 
-                    listOfUsersByGames[gid][user.game.name].push(uid);
-                }
-            });
+                listOfUsersByGames[gid][user.game.name].push(uid);
+            }
         });
 
-        checkCommonGames();
-    }
+        checkCommonGames(gid);
+    });
+
 });
 
 bot.on('disconnect', () => {
     console.log('Disconnected');
     
-    if (config.autoReconnect) {
+    if (config.global.autoReconnect) {
         console.log('Reconnecting in', config.autoReconnectInterval/1000, 'seconds');
-        setTimeout(()=>bot.connect(), config.autoReconnectInterval)
+        setTimeout(()=>bot.connect(), config.global.autoReconnectInterval)
     }
 });
 
@@ -106,7 +107,7 @@ bot.on('any', (evt) => {
 
         if (!config.entries[evt.d.id]){
             console.log("Creating new", evt);
-            config.createNew(evt.d.id);
+            config.createNew(evt.d.id, evt.d.name);
         }
     }
 
@@ -136,7 +137,7 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
     var lower = msg.toLowerCase();
     var server = bot.servers[channel.guild_id];
     cmds.forEach(cmd => {
-        if (lower.startsWith(config.commandPrefix + cmd.command)) {
+        if (lower.startsWith(config.entries[channel.guild_id].commandPrefix + cmd.command)) {
             if (cmd.checkUserPermissions(userID, server)){
                 cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
             }
@@ -154,41 +155,43 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
 
 
 /**** Auto-channel creation ****/
-if (config.autoCreateByGame) {
-    bot.on('presence', (user, uid, status, game, evt) => {
-        // First check if user is allowed to cause temp game channels
-        var server = bot.servers[evt.d.guild_id];
-        if (listOfUsersByGames[evt.d.guild_id] == undefined)
-            listOfUsersByGames[evt.d.guild_id] = {};
+bot.on('presence', (user, uid, status, game, evt) => {
+    var guild_id = evt.d.guild_id;
 
-        var serverListOfUsersByGames = listOfUsersByGames[evt.d.guild_id];
+    if(!config.entries[guild_id].autoCreateByGame) return;
 
-        if (bot.inRoles(server, evt.d.roles, config.autoCreateByGameRoles)) {
-            var game = evt.d.game;
-            // Add user to game list if playing game
-            if (game != null) {
-            
-                // Check if game is exempt
-                if (config.exemptAutoCreateGames.indexOf(game.name) !== -1) return;
+    // First check if user is allowed to cause temp game channels
+    var server = bot.servers[guild_id];
+    if (listOfUsersByGames[guild_id] == undefined)
+        listOfUsersByGames[guild_id] = {};
 
-                if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
-                serverListOfUsersByGames[game.name].push(uid);
-                checkCommonGames();
-            }
+    var serverListOfUsersByGames = listOfUsersByGames[guild_id];
 
-            // User not playing game, remove
-            else if (game == null) {
-                Object.keys(serverListOfUsersByGames).forEach(gameName => {
-                    var userList = serverListOfUsersByGames[gameName];
-                    if (userList.indexOf(uid) >= 0) {
-                        userList.splice(userList.indexOf(uid), 1);
-                    }
-                });
-            }
+    if (bot.inRoles(server, evt.d.roles, config.entries[guild_id].autoCreateByGameRoles)) {
+        var game = evt.d.game;
+        // Add user to game list if playing game
+        if (game != null) {
+        
+            // Check if game is exempt
+            if (config.entries[guild_id].exemptAutoCreateGames.indexOf(game.name) !== -1) return;
 
+            if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
+            serverListOfUsersByGames[game.name].push(uid);
+            checkCommonGames(guild_id);
         }
-    });
-}
+
+        // User not playing game, remove
+        else if (game == null) {
+            Object.keys(serverListOfUsersByGames).forEach(gameName => {
+                var userList = serverListOfUsersByGames[gameName];
+                if (userList.indexOf(uid) >= 0) {
+                    userList.splice(userList.indexOf(uid), 1);
+                }
+            });
+        }
+
+    }
+});
 
 function getNumberOfUsersPlayingGame(gameName, guildID){
     if (!listOfUsersByGames[guildID]) return 0;
@@ -196,25 +199,25 @@ function getNumberOfUsersPlayingGame(gameName, guildID){
     return listOfUsersByGames[guildID][gameName].length;
 }
 
-function checkCommonGames() {
-    Object.keys(listOfUsersByGames).forEach(serverID => {
-        var serverListOfUsersByGames = listOfUsersByGames[serverID];
-        Object.keys(serverListOfUsersByGames).forEach(gameName => {
-            var entry = serverListOfUsersByGames[gameName];
-            // There is at least autoCreateByGameCommon people playing this game
-            if (entry.length >= config.autoCreateByGameCommon) {
+function checkCommonGames(serverID) {
+    if (!config.entries[serverID].autoCreateByGame) return;
 
-                // Check if there is already a channel
-                var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
-                    var channel = bot.channels[cid];
-                    return channel.name.indexOf(gameName) !== -1;
-                });
-                if (filter.length == 0)  {
-                    console.log("Creating channel for players playing", gameName);
-                    bot.createTemporaryChannel(' ' + gameName, serverID);
-                }
+    var serverListOfUsersByGames = listOfUsersByGames[serverID];
+    Object.keys(serverListOfUsersByGames).forEach(gameName => {
+        var entry = serverListOfUsersByGames[gameName];
+        // There is at least autoCreateByGameCommon people playing this game
+        if (entry.length >= config.entries[serverID].autoCreateByGameCommon) {
+
+            // Check if there is already a channel
+            var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
+                var channel = bot.channels[cid];
+                return channel.name.indexOf(gameName) !== -1;
+            });
+            if (filter.length == 0)  {
+                console.log("Creating channel for players playing", gameName);
+                bot.createTemporaryChannel(' ' + gameName, serverID);
             }
-        });
+        }
     });
 }
 
@@ -225,25 +228,26 @@ function checkTemporaryChannels() {
         
         Object.keys(bot.channels).map(chanID => {
             var channel = bot.channels[chanID];
+            var guild_id = channel.guild_id;
 
             // Check if is temp channel
-            if (channel.type == 'voice' && bot.isChannelTemporary(channel.name)) {
+            if (channel.type == 'voice' && bot.isChannelTemporary(channel.name, guild_id)) {
                 // Add to age
                 if (listOfTempChannels[chanID] != undefined) {
                     // check number of users
                     if (Object.keys(channel.members).length == 0) {
 
                         // Check to see if game was created for common-games
-                        if (config.autoCreateByGame) {
-                            var gameName = bot.scrubTemporaryFlag(channel.name);
-                            if (getNumberOfUsersPlayingGame(gameName, channel.guild_id) >= config.autoCreateByGameCommon) {
+                        if (config.entries[guild_id].autoCreateByGame) {
+                            var gameName = bot.scrubTemporaryFlag(channel.name, guild_id);
+                            if (getNumberOfUsersPlayingGame(gameName, guild_id) >= config.entries[guild_id].autoCreateByGameCommon) {
                                 listOfTempChannels[chanID] = 0;
                                 return;
                             }
                         }
 
-                        listOfTempChannels[chanID] += config.tempChannelCheckInterval;
-                        if (listOfTempChannels[chanID] >= config.tempChannelTimeout) {
+                        listOfTempChannels[chanID] += config.global.tempChannelCheckInterval;
+                        if (listOfTempChannels[chanID] >= config.entries[guild_id].tempChannelTimeout) {
                             console.log('Channel expiring:', channel.name);
                             bot.deleteChannel(chanID, (err, res) => {
                                 if (err) console.error('Error deleting temporary channel:', err);
