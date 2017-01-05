@@ -75,9 +75,15 @@ class Config{
         // @TODO Have option for entering role id when roles share a name?
         else {
             var arr = this.config.entries[gid].getValue(key);
-            arr.push(filter[0]);
-            this.config.entries[gid].setValue(key,arr);
-            return "Role " + val + " added to " + key;
+            var ind = arr.indexOf(filter[0]);
+            if (ind == -1) {
+                arr.push(filter[0]);
+                this.config.entries[gid].setValue(key,arr);
+                return "Role " + val + " added to " + key;
+            }
+            else {
+                return key + " already contains role " + val;
+            }
         }
     }
     removeRole(gid, key, val) {
@@ -126,8 +132,16 @@ class Config{
         // @TODO Have option for entering role id when roles share a name?
         else {
             var arr = this.config.entries[gid].commandPermissions[key];
-            arr.push(filter[0]);
-            return "Role " + val + " added to command " + key;
+            var ind = arr.indexOf(filter[0]);
+            if (ind == -1) {
+                arr.push(filter[0]);
+                this.config.entries[gid]._dirty = true;
+                return "Role " + val + " added to command " + key;
+            }
+            else {
+                return key + " already contains role " + val;
+            }
+
         }
     }
     removeCmdRole(gid, key, val) {
@@ -146,6 +160,7 @@ class Config{
             var ind = arr.indexOf(filter[0]);
             if (ind != -1) {
                 arr.splice(ind, 1);
+                this.config.entries[gid]._dirty = true;
                 return "Role " + val + " removed from command " + key;
             }
             else {
@@ -165,18 +180,26 @@ class Config{
 
     addArrayString(gid, key, val) {
         var arr = this.config.entries[gid].getValue(key);
-        arr.push(val);
-        return val + " added to " + key;
+        var ind = arr.indexOf(val);
+        if (ind == -1) {
+            arr.push(val);
+            this.config.entries[gid]._dirty = true;
+            return val + " added to " + key;
+        }
+        else {
+            return key + " already contains " + val;
+        }
     }
     removeArrayString(gid, key, val) {
         var arr = this.config.entries[gid].getValue(key);
         var ind = arr.indexOf(val);
         if (ind != -1) {
             arr.splice(ind, 1);
+            this.config.entries[gid]._dirty = true;
             return val + " removed from " + key;
         }
         else {
-            return key + " does not contain" + val;
+            return key + " does not contain " + val;
         }
     }
 
@@ -405,12 +428,12 @@ class Config{
                     this.handleArrayRolesKey(username, uid, gid, cid, key, split, action); break;
 
                 // Special Array<Role>: commands
-                case 'permiision.create':
+                case 'permission.create':
                     key = "create";
-                    this.handleCmdRolesKey(username, uid, gid, cid, key, split, action); break;
+                    this.handleCmdRoles(username, uid, gid, cid, key, split, action); break;
                 case 'permission.config':
                     key = "config";
-                    this.handleCmdRolesKey(username, uid, gid, cid, key, split, action); break;
+                    this.handleCmdRoles(username, uid, gid, cid, key, split, action); break;
                     break;
 
                 default:

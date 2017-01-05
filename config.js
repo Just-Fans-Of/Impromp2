@@ -90,6 +90,7 @@ class GlobalConfig {
         this._tempChannelCheckInterval = obj['tempChannelCheckInterval'];
         this._autoReconnect = obj['autoReconnect'];
         this._autoReconnectInterval = obj['autoReconnectInterval'];
+        this._configSaveInterval = obj['configSaveInterval'];
     }
 
     get tempChannelCheckInterval() { return this._tempChannelCheckInterval; }
@@ -99,16 +100,20 @@ class GlobalConfig {
     set autoReconnect(val) { this._dirty = true; this._autoReconnect = val; }
 
     get autoReconnectInterval() { return this._autoReconnectInterval; }
-    set autoReconnectINterval(val) { this._autoReconnectInterval = val; }
+    set autoReconnectInterval(val) { this._autoReconnectInterval = val; }
+
+    get configSaveInterval() { return this._configSaveInterval; }
+    set configSaveInterval(val) { this._configSaveInterval= val; }
 
     isDirty() { return this._dirty; }
     clean() { this._dirty = false; }
 
     getEntryFormat() {
         return {
-            _id: this._id,
             tempChannelCheckInterval: this._tempChannelCheckInterval,
             autoReconnect: this._autoReconnect,
+            autoReconnectInterval: this._autoReconnectInterval,
+            configSaveInterval: this._configSaveInterval,
         }
     }
 }

@@ -57,8 +57,18 @@ MongoClient.connect(url, (err, db) => {
             entries: {},
 
             // Send all changed configurations to server
-            save: (callback) => {
-                if (callback) callback();
+            save: () => {
+                if (exports.config.global.isDirty()) {
+                    globalCollection.update({ _id: exports.config.global._id }, { $set: exports.config.global.getEntryFormat() });
+                    exports.config.global.clean();
+                }
+                Object.keys(exports.config.entries).forEach(gid => {
+                    var entry = exports.config.entries[gid];
+                    if (entry.isDirty()) {
+                        configCollection.update({ _id: entry._id}, {$set: entry.getEntryFormat(gid)});
+                        entry.clean();
+                    }
+                });
             },
             
             // Pull all config options and store locally
