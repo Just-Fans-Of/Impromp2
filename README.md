@@ -1,6 +1,4 @@
-
-A discord bot for making temporary channels
-
+# Impromp2 : A Discord bot for making Temporary Channels
 
 To start your own, make a file called keys.js with your token
 
