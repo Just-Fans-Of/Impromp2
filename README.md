@@ -59,7 +59,7 @@ Examples:
 
 ### Click the banner below to install to your Discord server.
 
-<a href="http://google.com.au/" rel="some text">![Discord Logo](/img/Black.png)</a>
+<a href="http://google.com.au/" rel="Add to Discord">![Discord Logo](/img/Purple.png)</a>
 
 ### To start your own instance of Impromp2
 
