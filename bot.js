@@ -47,13 +47,20 @@ bot.isChannelTemporary = (name, guild_id) => {
     }
 }
 
-bot.createTemporaryChannel = (name, guildID) => {
+bot.createTemporaryChannel = (name, guildID, callback) => {
     bot.createChannel({
         serverID: guildID,
         name: bot.createTemporaryChannelName(name, guildID),
         type: 'voice',
     }, (err,res) => {
-        if (err) console.error('Error creating temporary channel:', err);
+        if (err) {
+            if (err.statusCode == undefined || err.statusCode != 403) { // Don't have permission
+                console.error('Error creating temporary channel:', err);
+            }
+            callback(err);
+
+        }
+        else if (callback) callback();
     });
 
     // TODO info and permissions
@@ -92,7 +99,7 @@ bot.on('disconnect', () => {
     console.log('Disconnected');
     
     if (config.global.autoReconnect) {
-        console.log('Reconnecting in', config.autoReconnectInterval/1000, 'seconds');
+        console.log('Reconnecting in', config.global.autoReconnectInterval/1000, 'seconds');
         setTimeout(()=>bot.connect(), config.global.autoReconnectInterval)
     }
 });
@@ -249,9 +256,9 @@ function checkTemporaryChannels() {
 
                         listOfTempChannels[chanID] += config.global.tempChannelCheckInterval;
                         if (listOfTempChannels[chanID] >= config.entries[guild_id].tempChannelTimeout) {
-                            console.log('Channel expiring:', channel.name);
                             bot.deleteChannel(chanID, (err, res) => {
-                                if (err) console.error('Error deleting temporary channel:', err);
+                                if (err && (!err.statusCode || err.statusCode != 403))
+                                    console.error('Error deleting temporary channel:', err);
                             });
                             delete listOfTempChannels[chanID];
                         }

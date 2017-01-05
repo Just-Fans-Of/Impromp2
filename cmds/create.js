@@ -31,8 +31,14 @@ class Create{
         var channelName = (this.config.entries[gid].tempChannelHaveName ? username + ': ':' ') +
                           givenName;
 
-        console.log('Creating channel', channelName);
-        this.bot.createTemporaryChannel(channelName, gid);
+        this.bot.createTemporaryChannel(channelName, gid, (err) => {
+            if (err && err.statusCode && err.statusCode == 403) {
+                this.bot.sendMessage({
+                    to: cid,
+                    message: 'I seem to be unable to add a channel, perhaps I have yet to be given the proper permissions?',
+                });
+            }
+        });
     }
 
     checkUserPermissions(uid, server) {
