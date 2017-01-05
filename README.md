@@ -16,7 +16,7 @@ Impromp2 allows you to type a simple chat command and instantly create a tempora
 * Streamers / Server Managers / Moderators / People with commitment Issues / Anybody who uses Discord
 
 ## How do I use it?
-After first being invited to a server, Impromp2 will allow anyone with a roll that grants them Administrative permission to run the `/config` command, which will let you setup all the configuration properties. The defaults are pretty good, but you may want to allow a few more roles to use the `/create` command by running `/config add permission.create The Cool People Role`  
+After first being invited to a server, Impromp2 will allow anyone with a role that grants them Administrative permission to run the `/config` command, which will let you setup all the configuration properties. The defaults are pretty good, but you may want to allow a few more roles to use the `/create` command by running `/config add permission.create The Cool People Role`  
 
 The `/create` command creates a temporary voice channel that will automatically be deleted after 30 seconds of being empty.
 The bot is also configured to automatically create channels when 4 people are playing the same game.
