@@ -1,5 +1,9 @@
 'use strict';
 
+var winston = require('winston');
+
+winston.level = "debug";
+
 var keys = require('./keys.js');
 var config = require('./config.js');
 
@@ -7,7 +11,13 @@ exports.keys = keys;
 
 process.title = "justfansofbot";
 if(process.argv.filter(c => c == '-s' || c == '--silent').length > 0) {
-    console.log = () => {}; // @TODO proper logging
+    winston.remove(winston.transports.Console);
+}
+var filt;
+if((filt = process.argv.filter(c => c.startsWith("--logfile="))).length > 0) {
+    var filename = filt[0].substring(filt[0].indexOf('=')+1);
+    winston.add(winston.transports.File, {filename:filename});
+    winston.remove(winston.transports.Console);
 }
 
 var mongodb = require('mongodb');
@@ -29,12 +39,12 @@ var saveInterval;
 // Connect to database
 MongoClient.connect(url, (err, db) => {
     if (err) {
-        console.error("Error connecting to DB:", err);
+        winston.error("Error connecting to DB:", err);
         return;
     }
     dbStore = db;
 
-    console.log("Connected to database");
+    winston.info("Connected to database");
 
     //probably should use promises...
     var configDone = false;
@@ -75,7 +85,7 @@ MongoClient.connect(url, (err, db) => {
             pull: (callback) => {
                 configCollection.find({}).toArray((err, res) => {
                     if (err) {
-                        console.error("Error pulling from DB:", err);
+                        winston.error("Error pulling from DB:", err);
                         callback(err);
                         return;
                     }
@@ -97,7 +107,7 @@ MongoClient.connect(url, (err, db) => {
                 
                 configCollection.insert([obj], (err, res) => {
                     if (err)
-                        console.error('Error inserting new server config:', err);
+                        winston.error('Error inserting new server config:', err);
                 })
             },
 
@@ -124,7 +134,7 @@ MongoClient.connect(url, (err, db) => {
         globalCollection = res;
         res.findOne((err, res) => {
             if (err) {
-                console.error("Error fetching global config:", err);
+                winston.error("Error fetching global config:", err);
                 return;
             }
             exports.config.global = new GlobalConfig(res);
@@ -138,12 +148,13 @@ MongoClient.connect(url, (err, db) => {
 
 // Cleanup
 function exitHandler(options, err) {
-    console.log(options.evt, "Shutting down...");
-    if (err) console.log(err.stack);
+    winston.info(options.evt, "Shutting down...");
+    if (err) winston.info(err.stack);
     if (bot) bot.disconnect();
     if (dbStore) {
+        setTimeout(() => process.exit(), 4000);
         exports.config.save((err) => {
-            if(!err) console.log("Final save complete.");
+            if(!err) winston.info("Final save complete.");
 
             dbStore.close();
 

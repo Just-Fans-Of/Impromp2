@@ -1,4 +1,5 @@
 var Discord = require('discord.io');
+var winston = require('winston');
 
 var main = require('./index.js');
 var config = main.config;
@@ -10,7 +11,7 @@ var bot = new Discord.Client({
     token: keys.discord,
 });
 
-console.log('Connecting...');
+winston.info('Connecting...');
 bot.connect();
 module.exports = bot;
 
@@ -55,7 +56,7 @@ bot.createTemporaryChannel = (name, guildID, callback) => {
     }, (err,res) => {
         if (err) {
             if (err.statusCode == undefined || err.statusCode != 403) { // Don't have permission
-                console.error('Error creating temporary channel:', err);
+                winston.error('Error creating temporary channel:', err);
             }
             callback(err);
 
@@ -70,8 +71,8 @@ var listOfUsersByGames = {}; // { serverID: { gameName: [userID, userID] } }
 var listOfTempChannels = {}; // channelID: age
 
 bot.on('ready', (evt) => {
-    console.log('Logged in as %s - %s', bot.username, bot.id);
-    console.log("Go to https://discordapp.com/api/oauth2/authorize?client_id=" + bot.id + "&scope=bot&permissions=0 to add bot to a server");
+    winston.info('Logged in as %s - %s', bot.username, bot.id);
+    winston.info("Go to https://discordapp.com/api/oauth2/authorize?client_id=" + bot.id + "&scope=bot&permissions=0 to add bot to a server");
     checkTemporaryChannels();
     bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.global.tempChannelCheckInterval);
 
@@ -96,10 +97,10 @@ bot.on('ready', (evt) => {
 });
 
 bot.on('disconnect', () => {
-    console.log('Disconnected');
+    winston.info('Disconnected');
     
     if (config.global.autoReconnect) {
-        console.log('Reconnecting in', config.global.autoReconnectInterval/1000, 'seconds');
+        winston.info('Reconnecting in', config.global.autoReconnectInterval/1000, 'seconds');
         setTimeout(()=>bot.connect(), config.global.autoReconnectInterval)
     }
 });
@@ -222,7 +223,7 @@ function checkCommonGames(serverID) {
                 return channel.name.indexOf(gameName) !== -1;
             });
             if (filter.length == 0)  {
-                console.log("Creating channel for players playing", gameName);
+                winston.info("Creating channel for players playing", gameName);
                 bot.createTemporaryChannel(' ' + gameName, serverID);
             }
         }
@@ -258,7 +259,7 @@ function checkTemporaryChannels() {
                         if (listOfTempChannels[chanID] >= config.entries[guild_id].tempChannelTimeout) {
                             bot.deleteChannel(chanID, (err, res) => {
                                 if (err && (!err.statusCode || err.statusCode != 403))
-                                    console.error('Error deleting temporary channel:', err);
+                                    winston.error('Error deleting temporary channel:', err);
                             });
                             delete listOfTempChannels[chanID];
                         }
