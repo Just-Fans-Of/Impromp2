@@ -270,8 +270,8 @@ function checkTemporaryChannels() {
 // Second param is comma-delimted string
 bot.inRoles = function(server, roleIDs, roles) {
     for(var i = 0; i < roleIDs.length; i++ ){
-        var roleString = server.roles[roleIDs[i]].name;
-        var filter = roles.filter(r => roleString == r);
+        var roleID = roleIDs[i];
+        var filter = roles.filter(r => roleID == r);
         if (filter.length > 0) return true;
     }
     return false;
