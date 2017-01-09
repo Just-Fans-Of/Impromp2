@@ -31,7 +31,7 @@ bot.createTemporaryChannelName = (name, guild_id) => {
 // Remove the temporary flag addition from a name to get just the rest
 bot.scrubTemporaryFlag = (name, guild_id) => {
     if (config.entries[guild_id].tempChannelFlagLocation == 'start') {
-        return name.substring(config.entries[guild_id].tempChannelNameFlag.length);
+        return name.substring(config.entries[guild_id].tempChannelNameFlag.length + 1);
     }
     else {
         return name.substring(0, name.length - config.entries[guild_id].tempChannelNameFlag.length);
@@ -211,11 +211,9 @@ function getNumberOfUsersPlayingGame(gameName, guildID){
 function checkCommonGames(serverID) {
     if (!config.entries[serverID].autoCreateByGame) return;
 
-    var serverListOfUsersByGames = listOfUsersByGames[serverID];
-    Object.keys(serverListOfUsersByGames).forEach(gameName => {
-        var entry = serverListOfUsersByGames[gameName];
+    Object.keys(listOfUsersByGames[serverID]).forEach(gameName => {
         // There is at least autoCreateByGameCommon people playing this game
-        if (entry.length >= config.entries[serverID].autoCreateByGameCommon) {
+        if (getNumberOfUsersPlayingGame(gameName, serverID) >= config.entries[serverID].autoCreateByGameCommon) {
 
             // Check if there is already a channel
             var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
@@ -223,7 +221,6 @@ function checkCommonGames(serverID) {
                 return channel.name.indexOf(gameName) !== -1;
             });
             if (filter.length == 0)  {
-                winston.info("Creating channel for players playing", gameName);
                 bot.createTemporaryChannel(' ' + gameName, serverID);
             }
         }
