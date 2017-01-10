@@ -25,7 +25,7 @@ The bot is also configured to automatically create channels when 4 people are pl
 
 ### Click the banner below to install to your Discord server.
 
-<a href="https://discordapp.com/oauth2/authorize?client_id=266621038031273984&scope=bot&permissions=0" rel="Add to Discord">![Discord Logo](/img/Purple.png)</a>
+<a href="https://discordapp.com/oauth2/authorize?client_id=266621038031273984&scope=bot&permissions=66584" rel="Add to Discord">![Discord Logo](/img/Purple.png)</a>
 
 ## To start your own instance of Impromp2
 
