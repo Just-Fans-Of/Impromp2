@@ -69,6 +69,7 @@ bot.createTemporaryChannel = (name, guildID, callback) => {
 
 bot.listOfUsersByGames = {}; // { serverID: { gameName: [userID, userID] } }
 bot.listOfTempChannels = {}; // channelID: age
+bot.everyoneRoles = {}; // serverID: role_ID of @everyone
 
 bot.on('ready', (evt) => {
     winston.info('Logged in as %s - %s', bot.username, bot.id);
@@ -85,19 +86,16 @@ bot.on('ready', (evt) => {
             var user = server.members[uid];
             if (user.game && user.status == 'online') {
                 if (bot.inRoles(server, user.roles, config.entries[gid].autoCreateByGameRoles)) {
-                  if (bot.listOfUsersByGames[gid][user.game.name] == undefined)
-                      bot.listOfUsersByGames[gid][user.game.name] = [];
+                    if (bot.listOfUsersByGames[gid][user.game.name] == undefined)
+                        bot.listOfUsersByGames[gid][user.game.name] = [];
 
-                  bot.listOfUsersByGames[gid][user.game.name].push(uid);
-                  console.log(user.username + ' is playing ' + user.game.name, user);
+                    bot.listOfUsersByGames[gid][user.game.name].push(uid);
                 }
             }
         });
 
         checkCommonGames(gid);
     });
-
-    console.log(bot.listOfUsersByGames);
 
 });
 
@@ -120,11 +118,14 @@ bot.on('any', (evt) => {
         if (!config.entries[evt.d.id]){
             config.createNew(evt.d.id, evt.d.name);
         }
+
+        winston.info("Added to server", evt.d.name);
     }
 
     // We are leaving a server
     else if(evt.t == 'GUILD_DELETE') {
         // Maybe delete config, probably not
+        winston.info("Removed from server", evt.d.name);
     }
 });
 
@@ -170,41 +171,44 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
 
 /**** Auto-channel creation ****/
 bot.on('presence', (user, uid, status, game, evt) => {
-    var guild_id = evt.d.guild_id;
+    Object.keys(bot.servers).forEach(guild_id => {
+      var server = bot.servers[guild_id];
+      if(!config.entries[guild_id].autoCreateByGame) return;
 
-    if(!config.entries[guild_id].autoCreateByGame) return;
+      if (bot.listOfUsersByGames[guild_id] == undefined)
+          bot.listOfUsersByGames[guild_id] = {};
+      var serverListOfUsersByGames = bot.listOfUsersByGames[guild_id];
 
-    // First check if user is allowed to cause temp game channels
-    var server = bot.servers[guild_id];
-    if (bot.listOfUsersByGames[guild_id] == undefined)
-        bot.listOfUsersByGames[guild_id] = {};
+      if (server.members[uid]) {
 
-    var serverListOfUsersByGames = bot.listOfUsersByGames[guild_id];
+          // First check if user is allowed to cause temp game channels
+          if (bot.inRoles(server, evt.d.roles, config.entries[guild_id].autoCreateByGameRoles)) {
+              var game = evt.d.game;
+              // Add user to game list if playing game
+              if (game != null) {
+              
+                  // Check if game is exempt
+                  if (config.entries[guild_id].exemptAutoCreateGames.indexOf(game.name) !== -1) return;
 
-    if (bot.inRoles(server, evt.d.roles, config.entries[guild_id].autoCreateByGameRoles)) {
-        var game = evt.d.game;
-        // Add user to game list if playing game
-        if (game != null) {
-        
-            // Check if game is exempt
-            if (config.entries[guild_id].exemptAutoCreateGames.indexOf(game.name) !== -1) return;
+                  if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
+                  serverListOfUsersByGames[game.name].push(uid);
+                  checkCommonGames(guild_id);
+              }
 
-            if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
-            serverListOfUsersByGames[game.name].push(uid);
-            checkCommonGames(guild_id);
-        }
+              // User not playing game, remove
+              else if (game == null || status != 'online') {
+                  Object.keys(serverListOfUsersByGames).forEach(gameName => {
+                      var userList = serverListOfUsersByGames[gameName];
+                      if (userList.indexOf(uid) >= 0) {
+                          userList.splice(userList.indexOf(uid), 1);
+                      }
+                  });
+              }
 
-        // User not playing game, remove
-        else if (game == null || status != 'online') {
-            Object.keys(serverListOfUsersByGames).forEach(gameName => {
-                var userList = serverListOfUsersByGames[gameName];
-                if (userList.indexOf(uid) >= 0) {
-                    userList.splice(userList.indexOf(uid), 1);
-                }
-            });
-        }
+          }
 
-    }
+      }
+    });
 });
 
 function getNumberOfUsersPlayingGame(gameName, guildID){
