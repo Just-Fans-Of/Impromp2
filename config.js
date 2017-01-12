@@ -97,7 +97,10 @@ class GlobalConfig {
         this._autoReconnect = obj['autoReconnect'];
         this._autoReconnectInterval = obj['autoReconnectInterval'];
         this._configSaveInterval = obj['configSaveInterval'];
+        this._administrators = obj['administrators'];
     }
+
+    get administrators() { return this._administrators; }
 
     get tempChannelCheckInterval() { return this._tempChannelCheckInterval; }
     set tempChannelCheckInterval(val) { this._dirty = true; this._tempChannelCheckInterval = val; } 

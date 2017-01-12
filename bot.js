@@ -362,3 +362,7 @@ bot.isAdministrator = function(guild_id, user_id) {
     return false;
 };
 
+bot.isGlobalAdministrator = function (user_id) {
+    return config.global.administrators.indexOf(user_id) != -1;
+};
+
