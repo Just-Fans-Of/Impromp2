@@ -67,8 +67,8 @@ bot.createTemporaryChannel = (name, guildID, callback) => {
     // TODO info and permissions
 };
 
-var listOfUsersByGames = {}; // { serverID: { gameName: [userID, userID] } }
-var listOfTempChannels = {}; // channelID: age
+bot.listOfUsersByGames = {}; // { serverID: { gameName: [userID, userID] } }
+bot.listOfTempChannels = {}; // channelID: age
 
 bot.on('ready', (evt) => {
     winston.info('Logged in as %s - %s', bot.username, bot.id);
@@ -79,20 +79,25 @@ bot.on('ready', (evt) => {
     // Check users in game to add to list
     Object.keys(bot.servers).forEach(gid => {
         if (!config.entries[gid].autoCreateByGame) return;
-        listOfUsersByGames[gid] = {};
+        bot.listOfUsersByGames[gid] = {};
         var server = bot.servers[gid];
         Object.keys(server.members).forEach(uid => {
             var user = server.members[uid];
-            if (user.game) {
-                if (listOfUsersByGames[gid][user.game.name] == undefined)
-                    listOfUsersByGames[gid][user.game.name] = [];
+            if (user.game && user.status == 'online') {
+                if (bot.inRoles(server, user.roles, config.entries[gid].autoCreateByGameRoles)) {
+                  if (bot.listOfUsersByGames[gid][user.game.name] == undefined)
+                      bot.listOfUsersByGames[gid][user.game.name] = [];
 
-                listOfUsersByGames[gid][user.game.name].push(uid);
+                  bot.listOfUsersByGames[gid][user.game.name].push(uid);
+                  console.log(user.username + ' is playing ' + user.game.name, user);
+                }
             }
         });
 
         checkCommonGames(gid);
     });
+
+    console.log(bot.listOfUsersByGames);
 
 });
 
@@ -171,10 +176,10 @@ bot.on('presence', (user, uid, status, game, evt) => {
 
     // First check if user is allowed to cause temp game channels
     var server = bot.servers[guild_id];
-    if (listOfUsersByGames[guild_id] == undefined)
-        listOfUsersByGames[guild_id] = {};
+    if (bot.listOfUsersByGames[guild_id] == undefined)
+        bot.listOfUsersByGames[guild_id] = {};
 
-    var serverListOfUsersByGames = listOfUsersByGames[guild_id];
+    var serverListOfUsersByGames = bot.listOfUsersByGames[guild_id];
 
     if (bot.inRoles(server, evt.d.roles, config.entries[guild_id].autoCreateByGameRoles)) {
         var game = evt.d.game;
@@ -190,7 +195,7 @@ bot.on('presence', (user, uid, status, game, evt) => {
         }
 
         // User not playing game, remove
-        else if (game == null) {
+        else if (game == null || status != 'online') {
             Object.keys(serverListOfUsersByGames).forEach(gameName => {
                 var userList = serverListOfUsersByGames[gameName];
                 if (userList.indexOf(uid) >= 0) {
@@ -203,15 +208,22 @@ bot.on('presence', (user, uid, status, game, evt) => {
 });
 
 function getNumberOfUsersPlayingGame(gameName, guildID){
-    if (!listOfUsersByGames[guildID]) return 0;
-    if (!listOfUsersByGames[guildID][gameName]) return 0;
-    return listOfUsersByGames[guildID][gameName].length;
+    if (!bot.listOfUsersByGames[guildID]) return 0;
+    if (!bot.listOfUsersByGames[guildID][gameName]) return 0;
+    // Update list to only include online members
+    var arr = bot.listOfUsersByGames[guildID][gameName];
+    arr = bot.listOfUsersByGames[guildID][gameName] = arr.filter(uid => {
+      var member = bot.servers[guildID].members[uid];
+      return member.status == 'online';
+    });
+
+    return bot.listOfUsersByGames[guildID][gameName].length;
 }
 
 function checkCommonGames(serverID) {
     if (!config.entries[serverID].autoCreateByGame) return;
 
-    Object.keys(listOfUsersByGames[serverID]).forEach(gameName => {
+    Object.keys(bot.listOfUsersByGames[serverID]).forEach(gameName => {
         // There is at least autoCreateByGameCommon people playing this game
         if (getNumberOfUsersPlayingGame(gameName, serverID) >= config.entries[serverID].autoCreateByGameCommon) {
 
@@ -239,7 +251,7 @@ function checkTemporaryChannels() {
             // Check if is temp channel
             if (channel.type == 'voice' && bot.isChannelTemporary(channel.name, guild_id)) {
                 // Add to age
-                if (listOfTempChannels[chanID] != undefined) {
+                if (bot.listOfTempChannels[chanID] != undefined) {
                     // check number of users
                     if (Object.keys(channel.members).length == 0) {
 
@@ -247,26 +259,26 @@ function checkTemporaryChannels() {
                         if (config.entries[guild_id].autoCreateByGame) {
                             var gameName = bot.scrubTemporaryFlag(channel.name, guild_id);
                             if (getNumberOfUsersPlayingGame(gameName, guild_id) >= config.entries[guild_id].autoCreateByGameCommon) {
-                                listOfTempChannels[chanID] = 0;
+                                bot.listOfTempChannels[chanID] = 0;
                                 return;
                             }
                         }
 
-                        listOfTempChannels[chanID] += config.global.tempChannelCheckInterval;
-                        if (listOfTempChannels[chanID] >= config.entries[guild_id].tempChannelTimeout) {
+                        bot.listOfTempChannels[chanID] += config.global.tempChannelCheckInterval;
+                        if (bot.listOfTempChannels[chanID] >= config.entries[guild_id].tempChannelTimeout) {
                             bot.deleteChannel(chanID, (err, res) => {
                                 if (err && (!err.statusCode || err.statusCode != 403))
                                     winston.error('Error deleting temporary channel:', err);
                             });
-                            delete listOfTempChannels[chanID];
+                            delete bot.listOfTempChannels[chanID];
                         }
                     }
                     else {
-                        listOfTempChannels[chanID] = 0;
+                        bot.listOfTempChannels[chanID] = 0;
                     }
                 }
                 else
-                    listOfTempChannels[chanID] = 0;
+                    bot.listOfTempChannels[chanID] = 0;
             }
         });
     }
