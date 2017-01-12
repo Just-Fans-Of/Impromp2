@@ -183,8 +183,8 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
     // Check if metioning us
     var mentioned = evt.d.mentions.some(m => m.id == bot.id );
     // Remove the mention for ease parsing command
-    if (mentioned && msg.startsWith('<@!' + bot.id + '>')) {
-        msg = msg.substring( ('<@!' + bot.id + '>').length + 1 );
+    if (mentioned && msg.startsWith('<@' + bot.id + '>')) {
+        msg = msg.substring( ('<@' + bot.id + '>').length + 1 );
     }
 
     var channel = bot.channels[evt.d.channel_id]
