@@ -67,10 +67,12 @@ Keys:
   - tempChannelFlagLocation [String]: Where to put the flag, either start or end. Default: end
   - permission.create [Array<Role Name>]: Who can run the create command. Administrators always can.
   - permission.config [Array<Role Name>]: Who can run the config command. Administrators always can.
+  - tempChannelPermissions [Name of another channel]: Copy the permissions of another channel for temporary channels. The channel can be deleted afterwards
 Examples:
   - /config set autoCreateByGame false
   - /config get tempChannelNameFlag
   - /config add permissions.create SuperAdministratorSquad
+  - /config set tempChannelPermissions Temp permission channel
 ```
 
 #### Create
@@ -80,3 +82,8 @@ Creates a temporary channel with the given name.
 If no name is given, the channel's name will either be the title of the game you are playing, or your name if you are not.
 ```
 
+#### Channel Permissions
+
+To set the permissions for created temporary channels, create a dummy channel and set all the desired permissions on that. This will be used as a reference for future created temporary channels.  
+Then, to tell the bot which channel to copy the permissions from, enter the command `/config set tempChannelPermissions Your Dummy Channel`. From then on, all created temporary channels will have permissions equal to that dummy channel.  
+The dummy channel should then be deleted.
