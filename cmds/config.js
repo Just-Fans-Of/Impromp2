@@ -41,10 +41,12 @@ class Config{
             "  - `tempChannelFlagLocation [String]`: Where to put the flag, either start or end. Default: end",
             "  - `permission.create [Array<Role Name>]`: Who can run the `create` command. Administrators always can.",
             "  - `permission.config [Array<Role Name>]`: Who can run the `config` command. Administrators always can.",
+            "  - `tempChannelPermissions [Name of another channel]`: Copy the permissions of another channel for temporary channels. The channel can be deleted afterwards",
             "**Examples:**",
             "  - `" + cmd + " set autoCreateByGame false`",
             "  - `" + cmd + " get tempChannelNameFlag`",
             "  - `" + cmd + " add permissions.create SuperAdministratorSquad`",
+            "  - `" + cmd + " set tempChannelPermissions Temp permission channel`",
         ];
         this.bot.sendMessage({
             to: cid,
@@ -367,6 +369,46 @@ class Config{
         }
     }
 
+    handleChannelPermissions(username, uid, gid, cid, key, split, action) {
+        var res;
+        if (action == "get") {
+            this.bot.sendMessage({
+                to: cid,
+                message: "Cannot use get on " + key,
+            });
+        }
+        else if (action == "set") {
+            var channelName = split.slice(3, split.length).join(' ');
+            var server = this.bot.servers[gid];
+            var find = Object.keys(server.channels).filter(channelID => {
+                return server.channels[channelID].name == channelName;
+            });
+
+            if (find.length == 0) { 
+                res = "Channel not found.";
+            }
+            else if (find.length == 0) {
+                res = "Multiple channels found by that name.";
+            }
+            else {
+                res = "Copying channel permissions of " + channelName + " for future temporary channels."
+                var channel = server.channels[find[0]];
+                this.config.entries[gid].tempChannelPermissions = channel.permissions;
+            }
+          
+        }
+        else {
+            this.printFailResponse(username, uid, gid, cid);
+            return;
+        }
+        if (res){
+            this.bot.sendMessage({
+                to: cid,
+                message: res,
+            });
+        }
+    }
+
 
     // Message input, user id <snowflake>, guild id <snowflake>, channel id <snowflake>
     onCommandEntered(message, username, uid, gid, cid) {
@@ -434,7 +476,11 @@ class Config{
                 case 'permission.config':
                     key = "config";
                     this.handleCmdRoles(username, uid, gid, cid, key, split, action); break;
-                    break;
+                
+                // Temp channel permissions
+                case 'tempchannelpermissions':
+                    key = "tempChannelPermissions";
+                    this.handleChannelPermissions(username, uid, gid, cid, key, split, action); break;
 
                 default:
                     var cmd = this.config.entries[gid].commandPrefix + this.command;

@@ -58,10 +58,47 @@ bot.createTemporaryChannel = (name, guildID, callback) => {
             if (err.statusCode == undefined || err.statusCode != 403) { // Don't have permission
                 winston.error('Error creating temporary channel:', err);
             }
+
             if(callback)callback(err);
 
         }
-        else if (callback) callback();
+        else {
+            // Set permissions
+            var perm = config.entries[guildID].tempChannelPermissions;
+            if (perm && perm.user && perm.role) {
+                var count = Object.keys(perm.user).length + Object.keys(perm.role).length;
+                var complete = (error) => {
+                    count --;
+                    if (count == 0 || error) {
+                        if(callback) callback(error);
+                    }
+                }
+
+
+                Object.keys(perm.user).forEach(uid => {
+                    bot._req('post', Discord.Endpoints.CHANNEL(res.id) + '/permissions/' + uid, {
+                        type: 'member',
+                        id: uid,
+                        allow: perm.user[uid].allow,
+                        deny: perm.user[uid].deny,
+                    }, (err, res) => {
+                        complete(err);
+                    })
+                });
+                Object.keys(perm.role).forEach(rid => {
+                    bot._req('put', Discord.Endpoints.CHANNEL(res.id) + '/permissions/' + rid, {
+                        type: 'role',
+                        id: rid,
+                        allow: perm.role[rid].allow,
+                        deny: perm.role[rid].deny,
+                    }, (err, res) => {
+                        complete(err);
+                    })
+                });
+            }
+
+            else if (callback) callback();
+        }
     });
 
     // TODO info and permissions

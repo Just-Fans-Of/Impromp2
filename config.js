@@ -18,6 +18,8 @@ class Config {
         this._commandPermissions = obj['commandPermissions'];
 
         this._maxChannelsPerPerson = obj['maxChannelsPerPerson']; // TODO
+
+        this._tempChannelPermissions = obj['tempChannelPermissions'];
     }
 
     getValue(key) {
@@ -27,6 +29,9 @@ class Config {
         this['_' + key] = val;
         this._dirty = true;
     }
+
+    get tempChannelPermissions() { return this._tempChannelPermissions; }
+    set tempChannelPermissions(val) { this._dirty = true; this._tempChannelPermissions = val; }
 
     get maxChannelsPerPerson() { return this._maxChannelsPerPerson; }
     set maxChannelsPerPerson(val) { this._dirty = true; this._maxChannelsPerPerson = val; }
@@ -75,6 +80,7 @@ class Config {
             tempChannelFlagLocation: this._tempChannelFlagLocation,
             commandPermissions: this._commandPermissions,
             maxChannelsPerPerson: this._maxChannelsPerPerson,
+            tempChannelPermissions: this._tempChannelPermissions,
         };
         showID = showID == undefined ? true : showID;
         if (showID) rtn._id = this._id;
