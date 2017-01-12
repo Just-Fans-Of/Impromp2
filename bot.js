@@ -58,7 +58,7 @@ bot.createTemporaryChannel = (name, guildID, callback) => {
             if (err.statusCode == undefined || err.statusCode != 403) { // Don't have permission
                 winston.error('Error creating temporary channel:', err);
             }
-            callback(err);
+            if(callback)callback(err);
 
         }
         else if (callback) callback();
