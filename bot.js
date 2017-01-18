@@ -193,7 +193,7 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
     var lower = msg.toLowerCase();
     var server = bot.servers[channel.guild_id];
     cmds.some(cmd => {
-        if (lower.startsWith(config.entries[channel.guild_id].commandPrefix + cmd.command)) {
+        if (lower.startsWith(config.entries[channel.guild_id].commandPrefix + cmd.command + ' ')) {
             if (cmd.checkUserPermissions(userID, server)){
                 cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
             }
