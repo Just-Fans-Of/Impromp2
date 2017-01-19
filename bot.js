@@ -163,6 +163,7 @@ bot.on('any', (evt) => {
     else if(evt.t == 'GUILD_DELETE') {
         // Maybe delete config, probably not
         winston.info("Removed from server", evt.d.name);
+        delete bot.listOfUersByGames[gid];
     }
 });
 
@@ -273,7 +274,8 @@ function checkCommonGames(serverID) {
 
     Object.keys(bot.listOfUsersByGames[serverID]).forEach(gameName => {
         // There is at least autoCreateByGameCommon people playing this game
-        if (getNumberOfUsersPlayingGame(gameName, serverID) >= config.entries[serverID].autoCreateByGameCommon) {
+        var count = getNumberOfUsersPlayingGame(gameName, serverID);
+        if (count >= config.entries[serverID].autoCreateByGameCommon) {
 
             // Check if there is already a channel
             var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
@@ -283,6 +285,9 @@ function checkCommonGames(serverID) {
             if (filter.length == 0)  {
                 bot.createTemporaryChannel(' ' + gameName, serverID);
             }
+        }
+        else if (count <= 0){
+          delete bot.listOfUsersByGames[guildID][gameName];
         }
     });
 }
