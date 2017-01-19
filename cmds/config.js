@@ -264,6 +264,7 @@ class Config{
         else if (action == "set") {
             var parse = parseInt(split[3]);
             if (parse == NaN) res = "**Error**: value is not a number";
+            if (parse <= 0) res = '**Error**: value must be greater-than or equal to 1';
             else res = this.setKey(gid, key, parse);
         }
         else {
