@@ -119,6 +119,7 @@ bot.on('ready', (evt) => {
         if (!config.entries[gid].autoCreateByGame) return;
         bot.listOfUsersByGames[gid] = {};
         var server = bot.servers[gid];
+        if (server.members == undefined) return;
         Object.keys(server.members).forEach(uid => {
             var user = server.members[uid];
             if (user.game && user.status == 'online') {
@@ -136,8 +137,8 @@ bot.on('ready', (evt) => {
 
 });
 
-bot.on('disconnect', () => {
-    winston.info('Disconnected');
+bot.on('disconnect', (err, code) => {
+    winston.info('Disconnected Err:', err, 'Code:', code);
     
     if (config.global.autoReconnect) {
         winston.info('Reconnecting in', config.global.autoReconnectInterval/1000, 'seconds');
@@ -217,7 +218,7 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
 bot.on('presence', (user, uid, status, game, evt) => {
     Object.keys(bot.servers).forEach(guild_id => {
       var server = bot.servers[guild_id];
-      if(!config.entries[guild_id].autoCreateByGame) return;
+      if(!config.entries[guild_id].autoCreateByGame || server.members == undefined) return;
 
       if (bot.listOfUsersByGames[guild_id] == undefined)
           bot.listOfUsersByGames[guild_id] = {};
