@@ -112,6 +112,7 @@ bot.on('ready', (evt) => {
     winston.info('Logged in as %s - %s', bot.username, bot.id);
     winston.info("Go to https://discordapp.com/api/oauth2/authorize?client_id=" + bot.id + "&scope=bot&permissions=0 to add bot to a server");
     checkTemporaryChannels();
+    if (bot.tempCheckInterval) clearInterval(bot.tempCheckInterval);
     bot.tempCheckInterval = setInterval(checkTemporaryChannels, config.global.tempChannelCheckInterval);
 
     // Check users in game to add to list
@@ -192,9 +193,10 @@ bot.on('message', (user, userID, channelID, msg, evt) => {
     if (channel == undefined) return; // Is a direct message, don't do anything
 
     var lower = msg.toLowerCase();
+    var split = lower.split(' ');
     var server = bot.servers[channel.guild_id];
     cmds.some(cmd => {
-        if (lower.startsWith(config.entries[channel.guild_id].commandPrefix + cmd.command)) {
+        if (split[0] == (config.entries[channel.guild_id].commandPrefix + cmd.command)) {
             if (cmd.checkUserPermissions(userID, server)){
                 cmd.onCommandEntered(msg, user, userID, channel.guild_id, evt.d.channel_id); // @TODO rewrite cmds to take objects sensibly?
             }
