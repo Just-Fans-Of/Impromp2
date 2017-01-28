@@ -168,3 +168,49 @@ process.on('exit', exitHandler.bind(null,{cleanup:true, evt:'exit'})); process.o
 process.on('SIGINT', exitHandler.bind(null, {exit:true, evt:'SIGINT'}));
 //catches uncaught exceptions
 process.on('uncaughtException', exitHandler.bind(null, {exit:true, evt:'exception'}));
+
+
+// Readline stuff for debugging
+var readline = require('readline');
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+rl.on('line', (line) => {
+  var lower = line.toLowerCase();
+  var split = line.split(' ');
+  if (lower.startsWith('dumpgames')) {
+    var server = split.slice(1).join(' ');
+    var servFilt = Object.keys(bot.servers).filter( id => bot.servers[id].name == server);
+    if (servFilt.length == 0) console.log('Server not found');
+    else {
+      console.log('Game output:');
+      var serverID = servFilt[0];
+      var list = bot.listOfUsersByGames[serverID];
+      Object.keys(list).forEach(gameName => {
+        var userList = list[gameName].map(uid => bot.servers[serverID].members[uid].username);
+        console.log('  ', gameName, '#' + list[gameName].length + ':', userList.join(', '));
+      });
+
+    }
+  }
+
+  if (lower.startsWith('dumpchannels')) {
+    /*var server = split.slice(1).join(' ');
+    var servFilt = Object.keys(bot.servers).filter( id => bot.servers[id].name == server);
+    if (servFilt.length == 0) console.log('Server not found');
+    else {
+      var serverID = servFilt[0];*/
+
+      var channels = Object.keys(bot.listOfTempChannels).map(chanID => {
+        var chan = bot.channels[chanID];
+        if (chan == undefined) return 'err';
+        var serv = bot.servers[chan.guild_id];
+        return serv.name + ' | ' + chan.name + ': ' + bot.listOfTempChannels[chanID]
+      });
+      console.log('Channels: ');
+      console.log('  ' + channels.join('\n  '));
+    //}
+  }
+});
