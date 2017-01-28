@@ -238,6 +238,14 @@ bot.on('presence', (user, uid, status, game, evt) => {
                   if (config.entries[guild_id].exemptAutoCreateGames.indexOf(game.name) !== -1) return;
 
                   if(!serverListOfUsersByGames[game.name]) serverListOfUsersByGames[game.name] = [];
+
+                  // Loop through games and scrub uid from any other lists
+                  Object.keys(serverListOfUsersByGames).forEach((gameName) => {
+                    serverListOfUsersByGames[gameName] = serverListOfUsersByGames[gameName].filter((fuid) => {
+                      return fuid != uid;
+                    });
+                  });
+
                   serverListOfUsersByGames[game.name].push(uid);
                   checkCommonGames(guild_id);
               }
@@ -274,9 +282,12 @@ function getNumberOfUsersPlayingGame(gameName, guildID){
 function checkCommonGames(serverID) {
     if (!config.entries[serverID].autoCreateByGame) return;
 
+    var empty = [];
+
     Object.keys(bot.listOfUsersByGames[serverID]).forEach(gameName => {
         // There is at least autoCreateByGameCommon people playing this game
-        if (getNumberOfUsersPlayingGame(gameName, serverID) >= config.entries[serverID].autoCreateByGameCommon) {
+        var count = getNumberOfUsersPlayingGame(gameName, serverID);
+        if (count >= config.entries[serverID].autoCreateByGameCommon) {
 
             // Check if there is already a channel
             var filter = Object.keys(bot.servers[serverID].channels).filter(cid => {
@@ -286,7 +297,14 @@ function checkCommonGames(serverID) {
             if (filter.length == 0)  {
                 bot.createTemporaryChannel(' ' + gameName, serverID);
             }
+        } else if (count <= 0) {
+          empty.push(gameName);
         }
+    });
+
+    // Scrub any empty game lists
+    empty.forEach((gameName) => {
+      delete bot.listOfUsersByGames[serverID][gameName];
     });
 }
 
