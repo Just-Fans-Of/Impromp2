@@ -118,6 +118,7 @@ class Config{
         return "**permissions." + key + "**: [\n" + 
             // map to role names
             this.config.entries[gid].commandPermissions[key].map(roleID => {
+                if (roles[roleID] == undefined) return '';
                 return '  - `' + roles[roleID].name + '`';
             });
     }
@@ -222,7 +223,8 @@ class Config{
             res = this.getKey(gid, key);
         }
         else if (action == "set") {
-            res = this.setKey(gid, key, split.slice(3, split.length).join(' '));
+            this.config.entries[gid].setValue(key, value);
+            res = "**" + key + "** set to `" + value + "`";
         }
         else {
             this.printFailResponse(username, uid, gid, cid);
