@@ -217,14 +217,16 @@ class Config{
         return "**" + key + "** set to `" + (value/1000) + "`";
     }
 
-    handleStringKey(username, uid, gid, cid, key, split, action) {
+    handleStringKey(username, uid, gid, cid, key, split, action, message) {
         var res;
         if (action == "get") {
             res = this.getKey(gid, key);
         }
         else if (action == "set") {
-            this.config.entries[gid].setValue(key, value);
-            res = "**" + key + "** set to `" + value + "`";
+            var val = split.slice(3,split.length);
+            // if (message[message.length-1] == ' ') val += ' ';
+            this.config.entries[gid].setValue(key, val);
+            res = "**" + key + "** set to `" + val + "`";
         }
         else {
             this.printFailResponse(username, uid, gid, cid);
@@ -438,7 +440,7 @@ class Config{
                 // string
                 case 'commandprefix':
                     key = 'commandPrefix';
-                    this.handleStringKey(username, uid, gid, cid, key, split, action); break;
+                    this.handleStringKey(username, uid, gid, cid, key, split, action, message); break;
                 case 'tempchannelnameflag':
                     key = 'tempChannelNameFlag',
                     this.handleStringKey(username, uid, gid, cid, key, split, action); break;
