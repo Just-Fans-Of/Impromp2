@@ -31,7 +31,7 @@ The bot is also configured to automatically create channels when 4 people are pl
 
 If you feel like hosting your own instance of this bot, running it requires only 3 things:
  - A discord bot user token, which you can obtain by making an application [here] and creating a bot user for that application.
- - A mongo server with 2 collections and 1 document pre-made each, [Config](https://gist.github.com/NumbuhFour/1c4636c5daa2ae292ebd9ab75dbeff31) and [Global](https://gist.github.com/NumbuhFour/4cca4ca2d78c99cb67dc0c6720d94594).
+ - A mongo server with 2 collections and 1 document pre-made each, [Config](https://gist.github.com/NumbuhFour/1c4636c5daa2ae292ebd9ab75dbeff31) and [Globals](https://gist.github.com/NumbuhFour/4cca4ca2d78c99cb67dc0c6720d94594).
  - a keys.js file to contain the secret login/token information
 
 
