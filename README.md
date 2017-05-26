@@ -71,7 +71,7 @@ Keys:
 Examples:
   - /config set autoCreateByGame false
   - /config get tempChannelNameFlag
-  - /config add permissions.create SuperAdministratorSquad
+  - /config add permission.create SuperAdministratorSquad
   - /config set tempChannelPermissions Temp permission channel
 ```
 
